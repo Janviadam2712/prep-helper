@@ -11,12 +11,13 @@ Added a Retrieval-Augmented Generation (RAG) system to answer questions from Che
 - User question → relevant chunks retrieved → answer generated with source attribution
 
 **Evaluation (RAGAS):**
-- `faithfulness`: 0.78 — answers stay grounded in retrieved context
-- `context_recall`: 0.95 — retrieval reliably finds the right source material
-- `factual_correctness (F1)`: 0.22 — this metric penalizes phrasing/formatting differences; manual review of the lowest-scoring responses found 7 out of 8 were factually correct, just worded differently from the reference answer
+- `faithfulness`: 0.77 — answers stay grounded in retrieved context
+- `context_recall`: 0.90 — retrieval reliably finds relevant source material
+- `factual_correctness (F1)`: 0.19 — this metric is strict on phrasing; manual review found the large majority of low-scored answers were factually correct but worded differently from the reference
 
-**Current scope:** Chemistry PYQs + syllabus only. Not yet extended to other subjects.
+**Debugging note:** one failure mode was root-caused to a chunk-boundary issue in PDF ingestion (a question's answer key landed in the next chunk), fixed by adding overlapping chunks — a common RAG failure pattern.
 
+**Current scope:** Chemistry PYQs + syllabus only.
 
 
 ## Getting Started
