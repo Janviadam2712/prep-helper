@@ -1,0 +1,82 @@
+[
+  {
+    "question": "Number of pi bonds present in the product formed by aldol condensation of Benzaldehyde and acetone?",
+    "ground_truth": "5 pi bonds"
+  },
+  {
+    "question": "What is the IUPAC name of Catechol?",
+    "ground_truth": "Benzene-1,2-diol"
+  },
+  {
+    "question": "Which adsorbents are used in adsorption chromatography?", 
+    "ground_truth": "Both silica gel and alumina"
+  },
+  {
+    "question": "What is the correct order of C-C bond length of Ethane, Ethene and Ethyne, from longest to shortest?", 
+    "ground_truth": "Ethane > Ethene > Ethyne"
+  },
+  {
+    "question": "What is the geometry of Aluminium chloride in aqueous solution?", 
+    "ground_truth": "Octahedral"
+  },
+  {
+    "question": "Phenolic group can be identified by a positive result in which test?", 
+    "ground_truth": "Phthalein test"
+  },
+  { 
+    "question": "Which quantity among mole fraction, mass percentage, molarity, and molality changes with temperature?", 
+    "ground_truth": "Molarity, because it depends on solution volume which changes with temperature"
+  },
+  {
+    "question": "How many of the following oxides are amphoteric: SnO2, PbO2, SiO2, P2O5, Al2O3, CO2, CO, NO, N2O?", 
+    "ground_truth": "3"
+  },
+  {
+    "question": "What technique is used to purify a steam-volatile, water-immiscible substance?", 
+    "ground_truth": "Steam distillation"
+  },
+  {
+    "question": "Which set of elements all have a d10 configuration in their ground state: Cu/Zn/Cd/Ag, or Cd/Au/Hg/Ni, or Sc/Ti/Fe/Zn, or Fe/Cr/Co/Ni?", 
+    "ground_truth": "Cu, Zn, Cd, Ag"
+  },
+  { 
+    "question": "Among [Co(NH3)6]3+, [PtCl6]2-, SF6, and BrF2-, how many have d2sp3 hybridisation?", 
+    "ground_truth": "2"
+  },
+  {
+    "question": "What is the correct IUPAC name of CH3-CH(NH2)-CH2-CN?", 
+    "ground_truth": "3-aminobutanenitrile"
+  },
+  {
+    "question": "Find the total number of possible optical isomers of 2-chlorobutane.", 
+    "ground_truth": "2"
+  },
+  {
+    "question": "In Kjeldahl's estimation of nitrogen, what role does CuSO4 play?", 
+    "ground_truth": "Catalyst"
+  },
+  {
+    "question": "Which ion gives a brownish colour with Nessler's reagent?", 
+    "ground_truth": "Ammonium salt (NH4+)"
+  },
+  {
+    "question": "Arrange phenol, meta-nitrophenol, para-nitrophenol, and ethanol in decreasing order of pKa value.", 
+    "ground_truth": "Ethanol > Phenol > meta-nitrophenol > para-nitrophenol"
+  },
+  {
+    "question": "What is the total number of stereoisomers possible for 2,3-dichlorobutane?", 
+    "ground_truth": "3 (two enantiomers plus one meso form)"
+  },
+  {
+    "question": "Among vitamins A, B1, B6, B12, C, D, and K, how many can be stored in the body?", 
+    "ground_truth": "3, the fat-soluble vitamins A, D, and K"
+  },
+  {
+    "question": "What is the product when phenol is treated with chloroform in the presence of NaOH at 343K, followed by hydrolysis?", 
+    "ground_truth": "Salicylaldehyde"
+  },
+  {
+    "question": "Which of the following does NOT give a Fehling's test: Acetone, Propanal, Ethanal, or Butanal?", 
+    "ground_truth": "Acetone"
+  }
+]
