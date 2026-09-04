@@ -1,5 +1,24 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+
+## RAG Feature (Chemistry PYQs)
+
+Added a Retrieval-Augmented Generation (RAG) system to answer questions from Chemistry Previous Year Questions (PYQs) and syllabus PDFs.
+
+**How it works:**
+- 72 text chunks extracted from 13 Chemistry PDFs
+- Chunks embedded using Gemini's `gemini-embedding-001` model and stored in Supabase (pgvector)
+- User question → relevant chunks retrieved → answer generated with source attribution
+
+**Evaluation (RAGAS):**
+- `faithfulness`: 0.78 — answers stay grounded in retrieved context
+- `context_recall`: 0.95 — retrieval reliably finds the right source material
+- `factual_correctness (F1)`: 0.22 — this metric penalizes phrasing/formatting differences; manual review of the lowest-scoring responses found 7 out of 8 were factually correct, just worded differently from the reference answer
+
+**Current scope:** Chemistry PYQs + syllabus only. Not yet extended to other subjects.
+
+
+
 ## Getting Started
 
 First, run the development server:
