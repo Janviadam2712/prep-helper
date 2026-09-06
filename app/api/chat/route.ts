@@ -22,6 +22,12 @@ export async function POST(req: NextRequest) {
   }
 
   const { messages, transcript, subject } = await req.json();
+  // Only send the last few turns to Groq to control token usage.
+// The full conversation still displays in the UI (AIChatPanel keeps
+// its own complete `messages` state) — this only limits what gets
+// sent to the model on each call, not what the student sees.
+  const MAX_HISTORY_MESSAGES = 6; // last 3 user+AI exchanges
+  const trimmedMessages = messages.slice(-MAX_HISTORY_MESSAGES);
   const hasTranscript = Boolean(transcript && transcript.trim().length > 0);
 
   // REVERTED: the "only send transcript on first message" optimization was
@@ -41,7 +47,7 @@ export async function POST(req: NextRequest) {
 
 ${
   includeTranscript
-    ? `The student is watching a YouTube lecture. Transcript:\n\n${transcript.slice(0, 8000)}\n\nBase answers on this transcript where relevant.`
+    ? `The student is watching a YouTube lecture. Transcript:\n\n${transcript.slice(0, 3000)}\n\nBase answers on this transcript where relevant.`
     : hasTranscript
       ? 'A transcript was already provided earlier in this conversation and is reflected in your prior replies — continue grounding answers in what was already established, without needing the full transcript re-sent.'
       : 'IMPORTANT: No transcript is loaded. The student has NOT shared any lecture or video with you yet. You have NOT watched anything. You have no specific "lecture" or "video" to reference.'
@@ -70,7 +76,7 @@ Formatting rules:
   // it now that the actual bottleneck is addressed.
   const lastMessage = messages[messages.length - 1]?.content || '';
   const isComplexMath = /integrat|differentiat|calculus|matrix|eigen|fourier|trigonometr/i.test(lastMessage);
-  const model = 'openai/gpt-oss-120b';
+  const model = 'openai/gpt-oss-20b';
 
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -83,15 +89,17 @@ Formatting rules:
         model,
         messages: [
           { role: 'system', content: systemPrompt },
-          ...messages,
+          ...trimmedMessages,
         ],
-        max_tokens: 800,
+        max_tokens: 1200,
         temperature: 0.7,
+        reasoning_effort: 'low',
       }),
     });
 
     const data = await response.json();
 
+    console.log('RAW GROQ RESPONSE:', JSON.stringify(data, null, 2));
     if (!response.ok) {
       return NextResponse.json(
         { error: data.error?.message || `Groq error: ${response.status}` },
