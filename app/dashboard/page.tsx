@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import Sidebar from '../../components/Sidebar';
 import Workspace from '../../components/Workspace';
 import AIChatPanel from '../../components/AIChatPanel';
@@ -9,6 +10,14 @@ export default function Dashboard() {
   const [sidebarOpen,   setSidebarOpen]   = useState(true);
   const [activeSubject, setActiveSubject] = useState('Physics');
   const [transcript,    setTranscript]    = useState('');
+  const [userId,        setUserId]        = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id ?? null);
+    });
+  }, []);
 
   return (
     // Dark is the unconditional default in globals.css (:root).
@@ -29,7 +38,7 @@ export default function Dashboard() {
           activeSubject={activeSubject}
           onSubjectChange={setActiveSubject}
         />
-        <Workspace onTranscriptLoaded={setTranscript} />
+        <Workspace onTranscriptLoaded={setTranscript} userId={userId} />
         <AIChatPanel
           darkMode={darkMode}
           onToggleDark={() => setDarkMode(!darkMode)}

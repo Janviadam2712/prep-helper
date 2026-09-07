@@ -8,6 +8,7 @@ import type { TranscriptSegment } from '../app/api/transcript/route';
 type WorkspaceProps = {
   onTranscriptLoaded: (transcript: string) => void;
   onSegmentsLoaded?: (segments: TranscriptSegment[]) => void;
+  userId: string | null;
 };
 
 const features = [
@@ -35,7 +36,7 @@ const badgeMap = {
   failed:    { bg: 'rgba(255,80,96,0.12)', color: '#FF5060', border: 'rgba(255,80,96,0.3)',   text: '⚠ Could not generate questions' },
 };
 
-export default function Workspace({ onTranscriptLoaded, onSegmentsLoaded }: WorkspaceProps) {
+export default function Workspace({ onTranscriptLoaded, onSegmentsLoaded, userId }: WorkspaceProps) {
   const [url,     setUrl]     = useState('');
   const [videoId,        setVideoId]        = useState('');
   const [pendingVideoId, setPendingVideoId]  = useState('');
@@ -51,17 +52,41 @@ export default function Workspace({ onTranscriptLoaded, onSegmentsLoaded }: Work
   const { containerRef, isReady, currentTime, playerState, pause, play } = useYouTubePlayer(videoId);
 
   const [showPareto, setShowPareto] = useState(false);
+  const [streak, setStreak] = useState<number | null>(null);
 
   useEffect(() => {
     const handleShowPareto = () => setShowPareto((prev) => !prev);
     window.addEventListener('show-pareto', handleShowPareto);
     return () => window.removeEventListener('show-pareto', handleShowPareto);
   }, []);
+  useEffect(() => {
+  if (!userId) return;
+  fetch(`/api/streak?userId=${userId}`)
+    .then((res) => res.json())
+    .then((data) => setStreak(data.streak ?? null))
+    .catch((err) => console.error('Initial streak fetch failed:', err));
+}, [userId]);
 
   const extractVideoId = (input: string): string | null => {
     const match = input.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     return match ? match[1] : null;
   };
+  const logActivityAndFetchStreak = async () => {
+  if (!userId) return;
+  try {
+    await fetch('/api/streak', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+    const res = await fetch(`/api/streak?userId=${userId}`);
+    const data = await res.json();
+    setStreak(data.streak ?? null);
+    window.dispatchEvent(new CustomEvent('streak-updated'));
+  } catch (err) {
+    console.error('Streak update failed:', err);
+  }
+};
 
   const handleLoad = async () => {
     const id = extractVideoId(url);
@@ -129,7 +154,9 @@ export default function Workspace({ onTranscriptLoaded, onSegmentsLoaded }: Work
 
           setVideoId(id);
           setStatus('done');
-        } catch {
+          logActivityAndFetchStreak();
+         }
+          catch {
           setStatus('failed');
           setFailMessage("We couldn't reach the AI to analyze this video. Check your connection and try again.");
           setPendingVideoId('');
@@ -169,6 +196,9 @@ export default function Workspace({ onTranscriptLoaded, onSegmentsLoaded }: Work
   };
 
   const showPlayer = status === 'done' && Boolean(videoId);
+  const displayStreakItems = streak !== null
+    ? [...streakItems.slice(0, 2), { icon: '🏆', text: `${streak}-day streak` }]
+    : streakItems;
 
   return (
     <main className="flex-1 flex flex-col h-full overflow-hidden" style={{ padding: '20px', gap: '16px', backgroundColor: 'var(--background)' }}>
@@ -403,7 +433,7 @@ export default function Workspace({ onTranscriptLoaded, onSegmentsLoaded }: Work
               <div className="absolute bottom-0 left-0 right-0 flex items-center gap-3 pointer-events-auto" style={{ padding: '12px 24px', background: 'rgba(14,13,34,0.85)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--border)' }}>
                 <span style={{ fontSize: '9.5px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>🔥 Today</span>
                 <div className="flex gap-2 overflow-hidden">
-                  {streakItems.map((item) => (
+                  {displayStreakItems.map((item) => (
                     <span key={item.text} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 10px', borderRadius: '99px', fontSize: '11px', fontWeight: 600, backgroundColor: 'var(--surface-raised)', border: '1px solid var(--border)', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                       {item.icon} {item.text}
                     </span>

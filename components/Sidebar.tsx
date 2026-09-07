@@ -25,6 +25,7 @@ export default function Sidebar({ open, onToggle, activeSubject, onSubjectChange
   const [loggingOut, setLoggingOut] = useState(false);
   const [subjects, setSubjects] = useState<SubjectRow[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(true);
+  const [streak, setStreak] = useState<number | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -51,12 +52,6 @@ export default function Sidebar({ open, onToggle, activeSubject, onSubjectChange
 
     loadSubjects();
 
-    // Real-time subscription: whenever `/api/analyze` upserts a new subject
-    // server-side, this listens for that INSERT and updates the sidebar
-    // immediately — without this, a student would need to manually refresh
-    // the page to see a subject they just generated. RLS still applies here:
-    // a user only receives change events for their own rows, same as a
-    // normal query would return.
     const channel = supabase
       .channel('subjects-changes')
       .on(
@@ -76,6 +71,24 @@ export default function Sidebar({ open, onToggle, activeSubject, onSubjectChange
       cancelled = true;
       supabase.removeChannel(channel);
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchStreak = () => {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data }) => {
+        const userId = data.user?.id;
+        if (!userId) return;
+        fetch(`/api/streak?userId=${userId}`)
+          .then((res) => res.json())
+          .then((d) => setStreak(d.streak ?? null))
+          .catch((err) => console.error('Sidebar streak fetch failed:', err));
+      });
+    };
+
+    fetchStreak();
+    window.addEventListener('streak-updated', fetchStreak);
+    return () => window.removeEventListener('streak-updated', fetchStreak);
   }, []);
 
   const handleLogout = async () => {
@@ -187,9 +200,15 @@ export default function Sidebar({ open, onToggle, activeSubject, onSubjectChange
           <div style={{ background: 'linear-gradient(135deg, rgba(108,71,255,0.15), rgba(240,165,0,0.08))', border: '1px solid rgba(108,71,255,0.22)', borderRadius: '12px', padding: '12px 14px' }}>
             <div className="flex items-center gap-2 mb-1">
               <span style={{ fontSize: '16px' }}>🔥</span>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>Streak tracking</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+                {streak !== null && streak > 0 ? `${streak}-day streak` : 'Streak tracking'}
+              </span>
             </div>
-            <p style={{ fontSize: '10.5px', color: 'var(--text-faint)', fontWeight: 500 }}>Coming soon — keep studying daily to build yours.</p>
+            <p style={{ fontSize: '10.5px', color: 'var(--text-faint)', fontWeight: 500 }}>
+              {streak !== null && streak > 0
+                ? 'Keep it going — load a lecture today to extend it.'
+                : 'Load a lecture today to start your streak.'}
+            </p>
           </div>
         </div>
       )}

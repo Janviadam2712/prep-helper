@@ -16,11 +16,13 @@ const supabase = createClient(
 );
 
 const CHUNK_SIZE = 1000; // characters, roughly ~500 tokens
+const CHUNK_OVERLAP = 200; // characters repeated at the start of the next chunk
 
 function chunkText(text: string): string[] {
   const clean = text.replace(/\s+/g, ' ').trim();
   const chunks: string[] = [];
-  for (let i = 0; i < clean.length; i += CHUNK_SIZE) {
+  const step = CHUNK_SIZE - CHUNK_OVERLAP; // how far we move forward each time
+  for (let i = 0; i < clean.length; i += step) {
     chunks.push(clean.slice(i, i + CHUNK_SIZE));
   }
   return chunks;

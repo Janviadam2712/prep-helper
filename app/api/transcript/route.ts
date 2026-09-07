@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { YoutubeTranscript } from 'youtube-transcript';
 
 export type TranscriptSegment = {
   text: string;
@@ -18,14 +17,21 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
+    const res = await fetch(
+      `https://api.supadata.ai/v1/youtube/transcript?videoId=${videoId}`,
+      { headers: { 'x-api-key': process.env.SUPADATA_API_KEY! } }
+    );
 
-    // NOTE: the `youtube-transcript` package returns `offset` and
-    // `duration` in MILLISECONDS, not seconds — verify this against your
-    // installed version if timestamps look 1000x off in testing.
-    // We convert to seconds here so the rest of the app (player.seekTo,
-    // currentTime polling) can compare directly without unit confusion.
-    const segments: TranscriptSegment[] = transcriptItems.map((item) => ({
+    if (!res.ok) {
+      throw new Error(`Supadata returned status ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    // Supadata returns a `content` array where each item has
+    // text, offset (ms), and duration (ms) — same unit issue as before,
+    // so we still convert to seconds here.
+    const segments: TranscriptSegment[] = data.content.map((item: { text: string; offset: number; duration: number }) => ({
       text: item.text,
       start: item.offset / 1000,
       duration: item.duration / 1000,
