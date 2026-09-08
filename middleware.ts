@@ -4,7 +4,7 @@ import { createServerClient } from '@supabase/ssr';
 // Routes that require a logged-in user. Anything under these paths gets
 // checked before the request is allowed through.
 const PROTECTED_PAGE_PREFIXES = ['/dashboard'];
-const PROTECTED_API_PREFIXES = ['/api/chat', '/api/analyze', '/api/transcript'];
+const PROTECTED_API_PREFIXES = ['/api/chat', '/api/analyze', '/api/transcript', '/api/streak'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -59,6 +59,7 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/chat/:path*', '/api/analyze/:path*', '/api/transcript/:path*'],
+  matcher: ['/dashboard/:path*', '/api/chat/:path*', '/api/analyze/:path*', '/api/transcript/:path*', '/api/streak/:path*'],
 };

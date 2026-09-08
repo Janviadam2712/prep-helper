@@ -19,9 +19,7 @@ const features = [
 ];
 
 const streakItems = [
-  { icon: '⚡', text: 'Physics · 12 concepts' },
-  { icon: '🧪', text: 'Chem · 8 quizzes'      },
-  { icon: '🏆', text: '7-day streak'           },
+  { icon: '🏆', text: '7-day streak' },
 ];
 // NOTE: streakItems/features still hardcoded/decorative — kept as-is per
 // explicit instruction to leave streak-related items for later.
@@ -197,8 +195,8 @@ export default function Workspace({ onTranscriptLoaded, onSegmentsLoaded, userId
 
   const showPlayer = status === 'done' && Boolean(videoId);
   const displayStreakItems = streak !== null
-    ? [...streakItems.slice(0, 2), { icon: '🏆', text: `${streak}-day streak` }]
-    : streakItems;
+  ? [{ icon: '🏆', text: `${streak}-day streak` }]
+  : streakItems;
 
   return (
     <main className="flex-1 flex flex-col h-full overflow-hidden" style={{ padding: '20px', gap: '16px', backgroundColor: 'var(--background)' }}>
