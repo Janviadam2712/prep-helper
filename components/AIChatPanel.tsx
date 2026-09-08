@@ -78,6 +78,7 @@ export default function AIChatPanel({ darkMode, onToggleDark, transcript, active
   const [hoveredMacro, setHoveredMacro] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const isListeningRef = useRef(false);  
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
   
@@ -92,7 +93,7 @@ export default function AIChatPanel({ darkMode, onToggleDark, transcript, active
   if (!SpeechRecognition) return;
 
   const recognition = new SpeechRecognition();
-  recognition.continuous = false;
+  recognition.continuous = true;
   recognition.interimResults = true;
   recognition.lang = 'en-US';
 
@@ -108,10 +109,13 @@ export default function AIChatPanel({ darkMode, onToggleDark, transcript, active
   });
 };
 
-  recognition.onend = () => {
+recognition.onend = () => {
+  if (isListeningRef.current) {
+    recognition.start();
+  } else {
     setIsListening(false);
-  };
-
+  }
+};
   recognition.onerror = () => {
     setIsListening(false);
   };
@@ -122,10 +126,12 @@ export default function AIChatPanel({ darkMode, onToggleDark, transcript, active
 const toggleListening = () => {
   if (!recognitionRef.current) return;
   if (isListening) {
+    isListeningRef.current = false;
     recognitionRef.current.stop();
     setIsListening(false);
   } else {
     setInput('');
+    isListeningRef.current = true;
     recognitionRef.current.start();
     setIsListening(true);
   }
