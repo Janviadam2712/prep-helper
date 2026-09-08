@@ -50,7 +50,7 @@ ${
     ? `The student is watching a YouTube lecture. Transcript:\n\n${transcript.slice(0, 3000)}\n\nBase answers on this transcript where relevant.`
     : hasTranscript
       ? 'A transcript was already provided earlier in this conversation and is reflected in your prior replies — continue grounding answers in what was already established, without needing the full transcript re-sent.'
-      : 'IMPORTANT: No transcript is loaded. The student has NOT shared any lecture or video with you yet. You have NOT watched anything. You have no specific "lecture" or "video" to reference.'
+      : 'IMPORTANT: No transcript is loaded. The student has NOT shared any lecture or video with you yet. You have NOT watched anything. You have no specific "lecture" or "video" to reference. You also have NO ability to browse the internet, search for sources, or verify facts in real time — any answer you give is generated purely from training data and may be incomplete, outdated, or wrong. NEVER claim or imply that an answer is verified, sourced, fact-checked, or confirmed against any reference unless a transcript was actually provided.'
 }
 
 Ground rules (follow strictly):
@@ -111,7 +111,7 @@ Formatting rules:
 
     const text = hasTranscript
       ? rawText
-      : `⚠️ <strong>No lecture loaded</strong> — the following is general knowledge, not sourced from any video.\n\n${rawText}`;
+      : `⚠️ <strong>Unverified general knowledge</strong> — no lecture is loaded, and this AI has no way to browse the internet or check sources. This answer is generated from the model's training, not fact-checked or cited. Please verify anything important against your textbook or a trusted source.\n\n${rawText}`;
 
     return NextResponse.json({
       text,

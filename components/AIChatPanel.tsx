@@ -76,13 +76,60 @@ export default function AIChatPanel({ darkMode, onToggleDark, transcript, active
   const [input,        setInput]        = useState('');
   const [isLoading,    setIsLoading]    = useState(false);
   const [hoveredMacro, setHoveredMacro] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLInputElement>(null);
+  
 
   const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
+  useEffect(() => {
+  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  if (!SpeechRecognition) return;
+
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+
+  recognition.onresult = (event: any) => {
+  const transcript = Array.from(event.results)
+    .map((result: any) => result[0].transcript)
+    .join('');
+  setInput(transcript);
+  requestAnimationFrame(() => {
+    if (chatInputRef.current) {
+      chatInputRef.current.scrollLeft = chatInputRef.current.scrollWidth;
+    }
+  });
+};
+
+  recognition.onend = () => {
+    setIsListening(false);
+  };
+
+  recognition.onerror = () => {
+    setIsListening(false);
+  };
+
+  recognitionRef.current = recognition;
+}, []);
+
+const toggleListening = () => {
+  if (!recognitionRef.current) return;
+  if (isListening) {
+    recognitionRef.current.stop();
+    setIsListening(false);
+  } else {
+    setInput('');
+    recognitionRef.current.start();
+    setIsListening(true);
+  }
+};
 
   const handleMacroClick = (label: string) => {
     if (label === '80-20') {
@@ -110,6 +157,7 @@ export default function AIChatPanel({ darkMode, onToggleDark, transcript, active
           const secs = Math.floor(cp.start % 60).toString().padStart(2, '0');
           return `<li><strong>${mins}:${secs}</strong> — ${cp.question.replace(/\?$/, '').trim()}</li>`;
         })
+        
         .join('\n');
 
       const summaryHtml = `
@@ -352,13 +400,30 @@ export default function AIChatPanel({ darkMode, onToggleDark, transcript, active
       <div className="shrink-0" style={{ padding: '12px 14px 14px', borderTop: '1px solid var(--border)' }}>
         <div className="flex items-center gap-2" style={{ backgroundColor: 'var(--surface-raised)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '6px 6px 6px 12px' }}>
           <input
-            type="text" value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="Ask anything about the lecture…"
-            disabled={isLoading}
-            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-main)', minWidth: 0 }}
-          />
+  ref={chatInputRef}
+  type="text" value={input}
+  onChange={(e) => setInput(e.target.value)}
+  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+  placeholder={isListening ? 'Listening…' : 'Ask anything about the lecture…'}
+  disabled={isLoading}
+  style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-main)', minWidth: 0 }}
+  />
+          {recognitionRef.current && (
+            <button
+              onClick={toggleListening}
+              disabled={isLoading}
+              className="flex items-center justify-center rounded-xl transition-all hover:scale-105 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                width: '32px', height: '32px', fontSize: '14px', cursor: 'pointer',
+                border: '1px solid var(--border)',
+                backgroundColor: isListening ? 'rgba(255,80,96,0.15)' : 'var(--input-bg)',
+                color: isListening ? '#FF5060' : 'var(--text-muted)',
+              }}
+              aria-label={isListening ? 'Stop listening' : 'Start voice input'}
+            >
+              {isListening ? '⏹️' : '🎙️'}
+            </button>
+          )}
           <button
             onClick={() => handleSend()}
             disabled={isLoading || !input.trim()}
@@ -367,7 +432,6 @@ export default function AIChatPanel({ darkMode, onToggleDark, transcript, active
             aria-label="Send"
           >↑</button>
         </div>
-        <p style={{ textAlign: 'center', fontSize: '10.5px', color: 'var(--text-faint)', marginTop: '8px', fontWeight: 500 }}>🎙️ Voice input · coming soon</p>
       </div>
     </aside>
   );
